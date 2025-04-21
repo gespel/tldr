@@ -1,7 +1,6 @@
 import ollama
 from sentence_transformers import SentenceTransformer
 from annoy import AnnoyIndex
-import numpy as np
 from bs4 import BeautifulSoup
 
 def extract_text_from_html(file_path):
@@ -17,26 +16,25 @@ def create_embeddings(text_chunks, model):
     return embeddings
 
 def build_annoy_index(embeddings, dimension):
-    annoy_index = AnnoyIndex(dimension, 'angular')  # 'angular' ist eine häufig verwendete Distanzmetrik
+    annoy_index = AnnoyIndex(dimension, 'angular')
     for i, embedding in enumerate(embeddings):
         annoy_index.add_item(i, embedding)
-    annoy_index.build(10)  # Baue den Index (10 Bäume)
+    annoy_index.build(10)
     return annoy_index
 
 def retrieve_relevant_sections(query, model, annoy_index, text_chunks, top_k=5):
-    query_embedding = model.encode([query])[0]  # Erzeuge das Embedding der Anfrage
-    nearest_neighbors = annoy_index.get_nns_by_vector(query_embedding, top_k)  # Top k Nachbarn finden
-    relevant_sections = [text_chunks[i] for i in nearest_neighbors]  # Holen der Text-Chunks
+    query_embedding = model.encode([query])[0]
+    nearest_neighbors = annoy_index.get_nns_by_vector(query_embedding, top_k)
+    relevant_sections = [text_chunks[i] for i in nearest_neighbors]
     return relevant_sections
 
 def ask_mistral_with_retrieved_context(model, query, relevant_sections):
-    context = "\n".join(relevant_sections)  # Relevanteste Abschnitte kombinieren
+    context = "\n".join(relevant_sections)
     messages = [
         {"role": "system", "content": "You are a helpful assistant who answers questions based on the provided context."},
         {"role": "user", "content": f"Here is the context:\n{context}"},
         {"role": "user", "content": query}
     ]
-    # Anfrage an das Modell senden
     stream = ollama.chat(model=model, messages=messages, stream=True)
     print("\nAntwort vom Modell (live):\n")
     for chunk in stream:
@@ -53,8 +51,8 @@ if __name__ == "__main__":
 
     annoy_index = build_annoy_index(embeddings, dimension=len(embeddings[0]))
 
-    question = "Explain what a steering domain is?"
+    question = "What is a pipe?"
 
     relevant_sections = retrieve_relevant_sections(question, model, annoy_index, text_chunks)
-
+    print(relevant_sections)
     ask_mistral_with_retrieved_context("mistral", question, relevant_sections)
