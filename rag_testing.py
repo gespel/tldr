@@ -31,9 +31,9 @@ def retrieve_relevant_sections(query, model, annoy_index, text_chunks, top_k=5):
 def ask_mistral_with_retrieved_context(model, query, relevant_sections):
     context = "\n".join(relevant_sections)
     messages = [
-        {"role": "system", "content": "You are a helpful assistant who answers questions based on the provided context."},
-        {"role": "user", "content": f"Here is the context:\n{context}"},
-        {"role": "user", "content": query}
+        {"role": "system", "content": "You are working for NVIDIA. You are a helpful assistant who answers questions based on the provided context."},
+        {"role": "system", "content": f"Here is the context:\n{context}"},
+        {"role": "user", "content": f"{query}"}
     ]
     stream = ollama.chat(model=model, messages=messages, stream=True)
     print("\nAntwort vom Modell (live):\n")
