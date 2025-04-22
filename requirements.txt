@@ -1,0 +1,4 @@
+ollama~=0.4.8
+beautifulsoup4~=4.13.4
+sentence-transformers~=4.1.0
+annoy~=1.17.3
