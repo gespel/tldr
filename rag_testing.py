@@ -54,5 +54,5 @@ if __name__ == "__main__":
     question = "What is a pipe?"
 
     relevant_sections = retrieve_relevant_sections(question, model, annoy_index, text_chunks)
-    #print(relevant_sections)
+
     ask_mistral_with_retrieved_context("mistral", question, relevant_sections)
