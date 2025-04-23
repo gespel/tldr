@@ -1,3 +1,4 @@
+import sys
 import ollama
 from sentence_transformers import SentenceTransformer
 from annoy import AnnoyIndex
@@ -6,7 +7,7 @@ from bs4 import BeautifulSoup
 def extract_text_from_html(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         soup = BeautifulSoup(f, 'html.parser')
-    return soup.get_text(separator='\n')
+    return soup.get_text()
 
 def split_text_into_chunks(text, chunk_size=1000):
     return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
@@ -39,20 +40,24 @@ def ask_mistral_with_retrieved_context(model, query, relevant_sections):
     print("\nAntwort vom Modell:\n")
     for chunk in stream:
         print(chunk['message']['content'], end='', flush=True)
+    print()
 
 if __name__ == "__main__":
-    html_text = extract_text_from_html("doca_docs_1.html")
+    if len(sys.argv) != 2:
+        print("Usage: python tldr.py <DOCUMENT>")
+    else:
+        html_text = extract_text_from_html(sys.argv[1])
 
-    text_chunks = split_text_into_chunks(html_text)
+        text_chunks = split_text_into_chunks(html_text)
 
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+        model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    embeddings = create_embeddings(text_chunks, model)
+        embeddings = create_embeddings(text_chunks, model)
 
-    annoy_index = build_annoy_index(embeddings, dimension=len(embeddings[0]))
+        annoy_index = build_annoy_index(embeddings, dimension=len(embeddings[0]))
 
-    question = "What is a pipe?"
+        question = input("Stelle die Frage: ")
 
-    relevant_sections = retrieve_relevant_sections(question, model, annoy_index, text_chunks)
+        relevant_sections = retrieve_relevant_sections(question, model, annoy_index, text_chunks)
 
-    ask_mistral_with_retrieved_context("mistral", question, relevant_sections)
+        ask_mistral_with_retrieved_context("mistral", question, relevant_sections)
