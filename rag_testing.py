@@ -36,7 +36,7 @@ def ask_mistral_with_retrieved_context(model, query, relevant_sections):
         {"role": "user", "content": f"{query}"}
     ]
     stream = ollama.chat(model=model, messages=messages, stream=True)
-    print("\nAntwort vom Modell (live):\n")
+    print("\nAntwort vom Modell:\n")
     for chunk in stream:
         print(chunk['message']['content'], end='', flush=True)
 
@@ -54,5 +54,5 @@ if __name__ == "__main__":
     question = "What is a pipe?"
 
     relevant_sections = retrieve_relevant_sections(question, model, annoy_index, text_chunks)
-    print(relevant_sections)
+    #print(relevant_sections)
     ask_mistral_with_retrieved_context("mistral", question, relevant_sections)
